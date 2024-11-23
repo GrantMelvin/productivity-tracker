@@ -1,4 +1,29 @@
 <html>
-    <h1>Home page</h1>
-    <p>Helloasd {{ .Test }}</p>
+    <h1>Home</h1>
+    {{ range .Days}}
+        <h4>Date</h4>
+        {{.Date}} 
+        <br>
+        <h4>Goals</h4>
+        {{ range $key, $value := .Goals }}
+            {{ range $index, $element := $value }}
+                {{ $index }} - {{ $element }}
+            {{ end }}
+            <br>
+        {{ end }}
+        <h4>Productivity</h4>
+        {{ range $key, $value := .Productivity }}
+            {{ range $index, $element := $value }}
+                {{ $index }} - {{ $element }}
+            {{ end }}
+            <br>
+        {{ end }}
+        <h4>Notes</h4>
+        {{ range $key, $value := .Notes }}
+            {{ range $index, $element := $value }}
+                {{ $index }} - {{ $element }}
+            {{ end }}
+            <br>
+        {{ end }}
+    {{end}}
 </html>
