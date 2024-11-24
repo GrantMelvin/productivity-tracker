@@ -49,25 +49,21 @@
             background-color: #5285ba;
         }
 
-        form button a {
-            text-decoration: none;
+        .back-button {
+            display: inline-block;
+            background-color: #6ed285;
             color: black;
-        }
-
-        form button {
-            background-color: #28a745;
-            color: black;
-            border: none;
             border-radius: 5px;
             padding: 8px 15px;
             font-size: 14px;
             cursor: pointer;
-            margin-left: 10px;
+            text-decoration: none;
+            text-align: center;
             transition: background-color 0.3s ease;
         }
 
-        form button:hover {
-            background-color: #218838;
+        .back-button:hover {
+            background-color: #69b679;
         }
 
         table {
@@ -142,15 +138,16 @@
         <input type="text" id="keyword" name="keyword">
         <input type="submit" value="Search">
         {{ if .Search }}
-        <button>
-            <a href="/">Go Back</a>
-        </button>
+        <a href="/" class="back-button">
+            Go Back
+        </a>
         {{ end }}
         <a class="add-logs-button" href="/add-logs">Add</a>
     </form>
     <table>
         <thead>
             <tr>
+                <th>ID</th>
                 <th>Date</th>
                 <th>Goals</th>
                 <th>Productivity</th>
@@ -160,6 +157,7 @@
         <tbody>
             {{ range .Logs }}
             <tr>
+                <td>{{ .Id }}</td>
                 <td>{{ .Date }}</td>
                 <td>
                     {{ range $key, $value := .Goals }}

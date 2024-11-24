@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"html/template"
-	"io/fs"
 	"log"
 	"net/http"
 	"os"
@@ -17,6 +16,7 @@ const SIZE = 500
 const DATA_DIR = "./assets/data"
 
 var logs Logs
+var maxID int
 
 // Components of struct have to be capital for templating to work
 type Test struct {
@@ -24,6 +24,7 @@ type Test struct {
 }
 
 type Log struct {
+	Id           int                 `yaml:"id"`
 	Date         string              `yaml:"date"`
 	Goals        []map[string]string `yaml:"goals"`
 	Productivity []map[string]string `yaml:"productivity"`
@@ -68,6 +69,11 @@ func parseLogs(data []byte) (*Log, error) {
 
 	Log := &Log{}
 
+	// Set the id field
+	if id, ok := raw["id"].(int); ok {
+		Log.Id = id
+	}
+
 	// Set the date field
 	if date, ok := raw["date"].(string); ok {
 		Log.Date = date
@@ -92,27 +98,18 @@ func parseLogs(data []byte) (*Log, error) {
 }
 
 func getLogs(root_path string) Logs {
-
-	// Gets all subfolders of the data directory
 	entries, err := os.ReadDir(root_path)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println("total file count:", (len(entries)))
+	fmt.Println("Total file count:", len(entries))
 
-	// Slice starting from 0 to the length of what we need
 	Logs_slice := Logs{
-		Logs: make([]Log, (len(entries)), SIZE),
+		Logs: make([]Log, 0, SIZE), // Use zero-length slice with a capacity
 	}
 
-	Logs_slice = cleanLogs(Logs_slice, entries, root_path)
-
-	return Logs_slice
-}
-
-func cleanLogs(Logs Logs, file_entries []fs.DirEntry, root_path string) Logs {
-	for i, e := range file_entries {
+	for _, e := range entries {
 		filename := root_path + "/" + e.Name()
 		fmt.Println("Currently evaluating:", filename)
 
@@ -122,21 +119,22 @@ func cleanLogs(Logs Logs, file_entries []fs.DirEntry, root_path string) Logs {
 			continue
 		}
 
-		// Use the dynamic parsing function
 		Log, err := parseLogs(current_file)
 		if err != nil {
 			fmt.Printf("Failed to parse file %s: %v\n", filename, err)
 			continue
 		}
 
-		Logs.Logs[i] = *Log
+		Logs_slice.Logs = append(Logs_slice.Logs, *Log)
+
+		// Update maxID if necessary
+		if Log.Id > maxID {
+			maxID = Log.Id
+		}
 	}
 
-	// for Log := range Logs.Logs {
-	// 	fmt.Println(Logs.Logs[Log])
-	// }
-
-	return Logs
+	fmt.Printf("maxID: %d\n", maxID)
+	return Logs_slice
 }
 
 func containsString(log Log, searchString string) bool {
@@ -208,7 +206,6 @@ func searchLogs(keyword string) Logs {
 }
 
 func home(w http.ResponseWriter) {
-
 	var home = "home.html"
 
 	tmpl, err := template.ParseFiles(home)
@@ -228,7 +225,7 @@ func search(w http.ResponseWriter, r *http.Request) {
 	}
 
 	keyword := r.FormValue("keyword")
-	fmt.Println(keyword)
+	fmt.Println("keyword:", keyword)
 
 	// If they didnt search anything
 	// if keyword == "" {
@@ -246,8 +243,12 @@ func add(w http.ResponseWriter, r *http.Request) {
 
 		// Parse and add goals, productivity, and notes from form values
 		var newLog Log
-		newLog.Date = r.FormValue("date")
 
+		newLog.Id = maxID + 1
+		maxID = maxID + 1
+		fmt.Println(maxID)
+
+		newLog.Date = r.FormValue("date")
 		// Parse goals
 		goalsKeys := r.Form["goals_key[]"]
 		goalsValues := r.Form["goals_value[]"]
@@ -314,7 +315,7 @@ func main() {
 
 	// retrieve the logs before we do anything
 	logs = getLogs(DATA_DIR)
-
+	fmt.Println(maxID)
 	fs := http.FileServer(http.Dir("assets"))
 	http.Handle("/assets/", http.StripPrefix("/assets", fs))
 	http.HandleFunc("/", handler)
