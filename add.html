@@ -2,85 +2,203 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <link href="/assets/css/styles.css" type="text/css" rel="stylesheet">
     <title>Productivity Tracker</title>
     <style>
-        .field-container {
+        /* General body styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Page header */
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            color: #333;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        /* Back button styling */
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 15px;
+            background-color: #a1c6ed;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+
+        .back-button:hover {
+            background-color: #5285ba;
+        }
+
+        .back-button a {
+            text-decoration: none;
+            color: black;
+        }
+
+        /* Form container styling */
+        form {
+            max-width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
             margin-bottom: 10px;
+            color: #444;
         }
-        .dynamic-field {
-            display: flex;
-            align-items: center;
-            gap: 5px;
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
         }
-        .dynamic-field input,
-        .dynamic-field textarea {
-            flex: 1;
-        }
-        .dynamic-field button {
-            background-color: red;
-            color: white;
-            border: none;
-            padding: 0 10px;
-            cursor: pointer;
-        }
-        .add-button {
-            background-color: green;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            cursor: pointer;
-        }
+
         textarea {
             resize: none;
+            min-height: 80px;
+        }
+
+        /* Field container and buttons alignment */
+        .field-container {
+            margin-bottom: 20px;
+        }
+
+        .dynamic-field {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .dynamic-field input {
+            flex: 1;
+            max-width: 40%;
+        }
+
+        .dynamic-field textarea {
+            flex: 2;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-buttons button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .action-buttons button.add-button {
+            background-color: #28a745;
+        }
+
+        .action-buttons button.add-button:hover {
+            background-color: #218838;
+        }
+
+        .action-buttons button.remove-button {
+            background-color: #dc3545;
+        }
+
+        .action-buttons button.remove-button:hover {
+            background-color: #c82333;
+        }
+
+        input[type="submit"] {
+            display: block;
+            width: 100%;
+            background-color: #a1c6ed;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #5285ba;
         }
     </style>
 </head>
 <body>
-    <h1>Add Page</h1>
-    <button>
+    <button class="back-button">
         <a href="/">Go Back</a> 
     </button>
+    <h1>Add Page</h1>
     
     <form action="/add-logs" method="post">
-        <label for="Date">Date:</label><br>
-        <input type="text" id="Date" name="date" value=""><br><br>
+        <label for="Date">Date:</label>
+        <input type="text" id="Date" name="date" >
 
-        <label>Goals:</label><br>
+        <label>Goals:</label>
         <div id="goals-container" class="field-container">
             <div class="dynamic-field">
-                <input type="text" name="goals_key[]" placeholder="Enter goal key">
-                <textarea rows="4" cols="20" name="goals_value[]" placeholder="Enter goal value"></textarea>
-                <button type="button" onclick="removeField(this)">-</button>
+                <input type="text" name="goals_key[]" >
+                <textarea name="goals_value[]"></textarea>
+            </div>
+            <div class="action-buttons">
+                <button type="button" class="add-button" onclick="addField('goals-container', 'goals_key[]', 'goals_value[]')">+</button>
+                <button type="button" class="remove-button" onclick="removeLastField('goals-container')">-</button>
             </div>
         </div>
-        <button type="button" class="add-button" onclick="addField('goals-container', 'goals_key[]', 'goals_value[]')">+ Add Goal</button><br><br>
 
-        <label>Productivity:</label><br>
+        <label>Productivity:</label>
         <div id="productivity-container" class="field-container">
             <div class="dynamic-field">
-                <input type="text" name="productivity_key[]" placeholder="Enter productivity key">
-                <textarea rows="4" cols="20" name="productivity_value[]" placeholder="Enter productivity value"></textarea>
-                <button type="button" onclick="removeField(this)">-</button>
+                <input type="text" name="productivity_key[]">
+                <textarea name="productivity_value[]" ></textarea>
+            </div>
+            <div class="action-buttons">
+                <button type="button" class="add-button" onclick="addField('productivity-container', 'productivity_key[]', 'productivity_value[]')">+</button>
+                <button type="button" class="remove-button" onclick="removeLastField('productivity-container')">-</button>
             </div>
         </div>
-        <button type="button" class="add-button" onclick="addField('productivity-container', 'productivity_key[]', 'productivity_value[]')">+ Add Productivity</button><br><br>
 
-        <label>Notes:</label><br>
+        <label>Notes:</label>
         <div id="notes-container" class="field-container">
             <div class="dynamic-field">
-                <input type="text" name="notes_key[]" placeholder="Enter note key">
-                <textarea rows="4" cols="20" name="notes_value[]" placeholder="Enter note value"></textarea>
-                <button type="button" onclick="removeField(this)">-</button>
+                <input type="text" name="notes_key[]">
+                <textarea name="notes_value[]"></textarea>
+            </div>
+            <div class="action-buttons">
+                <button type="button" class="add-button" onclick="addField('notes-container', 'notes_key[]', 'notes_value[]')">+</button>
+                <button type="button" class="remove-button" onclick="removeLastField('notes-container')">-</button>
             </div>
         </div>
-        <button type="button" class="add-button" onclick="addField('notes-container', 'notes_key[]', 'notes_value[]')">+ Add Note</button><br><br>
 
         <input type="submit" value="Add">
     </form>
 
     <script>
-        // Function to add a new key-textarea input field
+        // Function to add a new field
         function addField(containerId, keyName, valueName) {
             const container = document.getElementById(containerId);
 
@@ -90,30 +208,23 @@
             const keyInput = document.createElement('input');
             keyInput.type = 'text';
             keyInput.name = keyName;
-            keyInput.placeholder = 'Enter key';
 
             const valueTextarea = document.createElement('textarea');
             valueTextarea.name = valueName;
-            valueTextarea.rows = 4;
-            valueTextarea.cols = 50;
-            valueTextarea.placeholder = 'Enter value';
-
-            const removeButton = document.createElement('button');
-            removeButton.type = 'button';
-            removeButton.textContent = '-';
-            removeButton.onclick = () => removeField(removeButton);
 
             fieldDiv.appendChild(keyInput);
             fieldDiv.appendChild(valueTextarea);
-            fieldDiv.appendChild(removeButton);
 
-            container.appendChild(fieldDiv);
+            container.insertBefore(fieldDiv, container.querySelector('.action-buttons'));
         }
 
-        // Function to remove an input field
-        function removeField(button) {
-            const fieldDiv = button.parentElement;
-            fieldDiv.remove();
+        // Function to remove the last field
+        function removeLastField(containerId) {
+            const container = document.getElementById(containerId);
+            const dynamicFields = container.querySelectorAll('.dynamic-field');
+            if (dynamicFields.length > 0) {
+                container.removeChild(dynamicFields[dynamicFields.length - 1]);
+            }
         }
     </script>
 </body>
