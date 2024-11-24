@@ -1,29 +1,69 @@
 <html>
-    <h1>Home</h1>
-    {{ range .Days}}
-        <h4>Date</h4>
-        {{.Date}} 
-        <br>
-        <h4>Goals</h4>
-        {{ range $key, $value := .Goals }}
-            {{ range $index, $element := $value }}
-                {{ $index }} - {{ $element }}
+    <head>
+        <meta charset="utf-8">
+        <link href="/assets/css/styles.css" type="text/css" rel="stylesheet">
+        <title>Productivity Tracker</title>
+    </head>
+    <body>
+        <h1>Tracking Home</h1>
+        <form action="/search-logs">
+            <input type="text" id="keyword" name="keyword" value="">
+            <input type="submit" value="Search">
+            {{ if .Search }}
+            <button>
+                <a href="/">Go Back</a>
+            </button>
             {{ end }}
-            <br>
-        {{ end }}
-        <h4>Productivity</h4>
-        {{ range $key, $value := .Productivity }}
-            {{ range $index, $element := $value }}
-                {{ $index }} - {{ $element }}
-            {{ end }}
-            <br>
-        {{ end }}
-        <h4>Notes</h4>
-        {{ range $key, $value := .Notes }}
-            {{ range $index, $element := $value }}
-                {{ $index }} - {{ $element }}
-            {{ end }}
-            <br>
-        {{ end }}
-    {{end}}
+        </form>
+        <form action="/add-logs">
+            <button>
+                <a href="/add-logs">Add Logs</a>
+            </button>
+        </form>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Goals</th>
+                    <th>Productivity</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{ range .Logs }}
+                <tr>
+                    <!-- Date -->
+                    <td>{{ .Date }}</td>
+                    
+                    <!-- Goals -->
+                    <td>
+                        {{ range $key, $value := .Goals }}
+                            {{ range $index, $element := $value }}
+                            {{ $element }} {{$index}}<br>
+                            {{ end }}
+                        {{ end }}
+                    </td>
+                    
+                    <!-- Productivity -->
+                    <td>
+                        {{ range $key, $value := .Productivity }}
+                            {{ range $index, $element := $value }}
+                                {{ $element }} {{$index}}<br>
+                            {{ end }}
+                        {{ end }}
+                    </td>
+                    
+                    <!-- Notes -->
+                    <td>
+                        {{ range $key, $value := .Notes }}
+                            {{ range $index, $element := $value }}
+                                {{ $element }} {{$index}}<br>
+                            {{ end }}
+                        {{ end }}
+                    </td>
+                </tr>
+                {{ end }}
+            </tbody>
+        </table>
+    </body>
 </html>

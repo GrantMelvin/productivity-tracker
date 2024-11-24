@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link href="/assets/css/styles.css" type="text/css" rel="stylesheet">
+    <title>Productivity Tracker</title>
+    <style>
+        .field-container {
+            margin-bottom: 10px;
+        }
+        .dynamic-field {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .dynamic-field input,
+        .dynamic-field textarea {
+            flex: 1;
+        }
+        .dynamic-field button {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 0 10px;
+            cursor: pointer;
+        }
+        .add-button {
+            background-color: green;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        textarea {
+            resize: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Add Page</h1>
+    <button>
+        <a href="/">Go Back</a> 
+    </button>
+    
+    <form action="/add-logs" method="post">
+        <label for="Date">Date:</label><br>
+        <input type="text" id="Date" name="date" value=""><br><br>
+
+        <label>Goals:</label><br>
+        <div id="goals-container" class="field-container">
+            <div class="dynamic-field">
+                <input type="text" name="goals_key[]" placeholder="Enter goal key">
+                <textarea rows="4" cols="20" name="goals_value[]" placeholder="Enter goal value"></textarea>
+                <button type="button" onclick="removeField(this)">-</button>
+            </div>
+        </div>
+        <button type="button" class="add-button" onclick="addField('goals-container', 'goals_key[]', 'goals_value[]')">+ Add Goal</button><br><br>
+
+        <label>Productivity:</label><br>
+        <div id="productivity-container" class="field-container">
+            <div class="dynamic-field">
+                <input type="text" name="productivity_key[]" placeholder="Enter productivity key">
+                <textarea rows="4" cols="20" name="productivity_value[]" placeholder="Enter productivity value"></textarea>
+                <button type="button" onclick="removeField(this)">-</button>
+            </div>
+        </div>
+        <button type="button" class="add-button" onclick="addField('productivity-container', 'productivity_key[]', 'productivity_value[]')">+ Add Productivity</button><br><br>
+
+        <label>Notes:</label><br>
+        <div id="notes-container" class="field-container">
+            <div class="dynamic-field">
+                <input type="text" name="notes_key[]" placeholder="Enter note key">
+                <textarea rows="4" cols="20" name="notes_value[]" placeholder="Enter note value"></textarea>
+                <button type="button" onclick="removeField(this)">-</button>
+            </div>
+        </div>
+        <button type="button" class="add-button" onclick="addField('notes-container', 'notes_key[]', 'notes_value[]')">+ Add Note</button><br><br>
+
+        <input type="submit" value="Add">
+    </form>
+
+    <script>
+        // Function to add a new key-textarea input field
+        function addField(containerId, keyName, valueName) {
+            const container = document.getElementById(containerId);
+
+            const fieldDiv = document.createElement('div');
+            fieldDiv.classList.add('dynamic-field');
+
+            const keyInput = document.createElement('input');
+            keyInput.type = 'text';
+            keyInput.name = keyName;
+            keyInput.placeholder = 'Enter key';
+
+            const valueTextarea = document.createElement('textarea');
+            valueTextarea.name = valueName;
+            valueTextarea.rows = 4;
+            valueTextarea.cols = 50;
+            valueTextarea.placeholder = 'Enter value';
+
+            const removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.textContent = '-';
+            removeButton.onclick = () => removeField(removeButton);
+
+            fieldDiv.appendChild(keyInput);
+            fieldDiv.appendChild(valueTextarea);
+            fieldDiv.appendChild(removeButton);
+
+            container.appendChild(fieldDiv);
+        }
+
+        // Function to remove an input field
+        function removeField(button) {
+            const fieldDiv = button.parentElement;
+            fieldDiv.remove();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+# When the day happened
+date: "01-03"
+# What I wanted to accomplish on that day
+goals: 
+  - "date": "Do something 4"
+  - "Do something 5"
+# What I got accomplished on that day
+productivity: 
+  - "test-tag123": "Did something 3"
+  - "Did something 4"
+# Context around that day
+notes: 
+  - "something123": "About something 5"
+  - "tag2":  "About something 5"
+  - "About something 6"
