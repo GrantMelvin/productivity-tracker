@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/joho/godotenv"
@@ -40,7 +41,7 @@ type SearchableLogs struct {
 	Search bool
 }
 
-func parseKeyValueArray(data []interface{}) []map[string]string {
+func parseKeyVals(data []interface{}) []map[string]string {
 	result := []map[string]string{}
 
 	for _, item := range data {
@@ -60,7 +61,16 @@ func parseKeyValueArray(data []interface{}) []map[string]string {
 	return result
 }
 
-func parseLogs(data []byte) (*Log, error) {
+func findLogByID(id int) (*Log, bool) {
+	for _, log := range logs.Logs {
+		if log.Id == id {
+			return &log, true
+		}
+	}
+	return nil, false
+}
+
+func setCurrentLogs(data []byte) (*Log, error) {
 	var raw map[string]interface{}
 	err := yaml.Unmarshal(data, &raw)
 	if err != nil {
@@ -81,17 +91,17 @@ func parseLogs(data []byte) (*Log, error) {
 
 	// Parse and set Goals
 	if goals, ok := raw["goals"].([]interface{}); ok {
-		Log.Goals = parseKeyValueArray(goals)
+		Log.Goals = parseKeyVals(goals)
 	}
 
 	// Parse and set Productivity
 	if productivity, ok := raw["productivity"].([]interface{}); ok {
-		Log.Productivity = parseKeyValueArray(productivity)
+		Log.Productivity = parseKeyVals(productivity)
 	}
 
 	// Parse and set Notes
 	if notes, ok := raw["notes"].([]interface{}); ok {
-		Log.Notes = parseKeyValueArray(notes)
+		Log.Notes = parseKeyVals(notes)
 	}
 
 	return Log, nil
@@ -119,7 +129,7 @@ func getLogs(root_path string) Logs {
 			continue
 		}
 
-		Log, err := parseLogs(current_file)
+		Log, err := setCurrentLogs(current_file)
 		if err != nil {
 			fmt.Printf("Failed to parse file %s: %v\n", filename, err)
 			continue
@@ -137,18 +147,18 @@ func getLogs(root_path string) Logs {
 	return Logs_slice
 }
 
-func containsString(log Log, searchString string) bool {
-	// Easy check for data field
+func parseLog(log Log, searchString string) bool {
+	// check date field for string
 	if strings.Contains(log.Date, searchString) {
 		return true
 	}
 
-	// Checks all of the mappings for the log we are evaluating
+	// check all the other mappings for the string
 	checkInSliceOfMaps := func(slice []map[string]string) bool {
 		// Checks each mapping
 		for _, m := range slice {
 
-			// Checks each key and value
+			// check each key and val
 			for key, value := range m {
 				if strings.Contains(key, searchString) {
 					return true
@@ -170,25 +180,6 @@ func containsString(log Log, searchString string) bool {
 	return false
 }
 
-func writeLog(log Log) {
-	var fileName = DATA_DIR + "/" + log.Date + ".yaml"
-	file, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
-	if err != nil {
-		fmt.Printf("error opening/creating file: %v\n", err)
-	}
-	fmt.Println("file:", file)
-	fmt.Println("log:", log)
-
-	defer file.Close()
-	enc := yaml.NewEncoder(file)
-
-	err = enc.Encode(log)
-
-	if err != nil {
-		fmt.Printf("error encoding: %v", err)
-	}
-}
-
 func searchLogs(keyword string) Logs {
 	var log_subset Logs
 	// fmt.Println(logs.Logs[0])
@@ -197,7 +188,7 @@ func searchLogs(keyword string) Logs {
 		log = logs.Logs[i]
 		fmt.Printf("Log %v: %v\n", i+1, log)
 
-		if containsString(log, keyword) {
+		if parseLog(log, keyword) {
 			log_subset.Logs = append(log_subset.Logs, log)
 		}
 	}
@@ -244,26 +235,25 @@ func add(w http.ResponseWriter, r *http.Request) {
 		// Parse and add goals, productivity, and notes from form values
 		var newLog Log
 
+		// makes new maxID
 		newLog.Id = maxID + 1
 		maxID = maxID + 1
-		fmt.Println(maxID)
 
+		// parse Each field from the html form
 		newLog.Date = r.FormValue("date")
-		// Parse goals
+
 		goalsKeys := r.Form["goals_key[]"]
 		goalsValues := r.Form["goals_value[]"]
 		for i := range goalsKeys {
 			newLog.Goals = append(newLog.Goals, map[string]string{goalsKeys[i]: goalsValues[i]})
 		}
 
-		// Parse productivity
 		productivityKeys := r.Form["productivity_key[]"]
 		productivityValues := r.Form["productivity_value[]"]
 		for i := range productivityKeys {
 			newLog.Productivity = append(newLog.Productivity, map[string]string{productivityKeys[i]: productivityValues[i]})
 		}
 
-		// Parse notes
 		notesKeys := r.Form["notes_key[]"]
 		notesValues := r.Form["notes_value[]"]
 		for i := range notesKeys {
@@ -273,9 +263,24 @@ func add(w http.ResponseWriter, r *http.Request) {
 		// Add the new log to the logs slice
 		logs.Logs = append(logs.Logs, newLog)
 
-		writeLog(newLog)
+		var fileName = DATA_DIR + "/" + newLog.Date + ".yaml"
+		file, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+		if err != nil {
+			fmt.Printf("error opening/creating file: %v\n", err)
+		}
+		fmt.Println("New File:", file)
+		fmt.Println("New Log:", newLog)
 
-		// Redirect to the home page
+		defer file.Close()
+		enc := yaml.NewEncoder(file)
+
+		err = enc.Encode(newLog)
+
+		if err != nil {
+			fmt.Printf("error encoding: %v", err)
+		}
+
+		// Go back to home page after creating a new log
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
@@ -290,6 +295,90 @@ func add(w http.ResponseWriter, r *http.Request) {
 	tmpl.ExecuteTemplate(w, add, nil)
 }
 
+func delete(w http.ResponseWriter, r *http.Request) {
+	targetID, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	targetLog, found := findLogByID(targetID)
+
+	fmt.Println("Target ID:", targetID)
+	fmt.Println("Target Log:", targetLog)
+
+	if !found {
+		fmt.Println("Log not found. We are in trouble.")
+	}
+
+	for i, log := range logs.Logs {
+		if log.Id == targetID {
+			fmt.Println("Removing:", log)
+			// Remove the log by slicing out the element at index i
+			logs.Logs = append(logs.Logs[:i], logs.Logs[i+1:]...)
+		}
+	}
+
+	var filename = "./assets/data/" + targetLog.Date + ".yaml"
+	fmt.Println("Filename to delete:", filename)
+
+	os.Remove(filename)
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func edit(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		targetID, err := strconv.Atoi(r.URL.Query().Get("id"))
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		targetLog, found := findLogByID(targetID)
+
+		fmt.Println("Target ID:", targetID)
+		fmt.Println("Target Log:", targetLog)
+
+		if !found {
+			fmt.Println("Log not found. We are in trouble.")
+		}
+
+		var path = "edit.html"
+		tmpl, err := template.ParseFiles(path)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		fmt.Println(targetLog)
+
+		tmpl.ExecuteTemplate(w, path, targetLog)
+	}
+
+	if r.Method == http.MethodPost {
+		targetID, err := strconv.Atoi(r.URL.Query().Get("id"))
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		targetLog, found := findLogByID(targetID)
+
+		fmt.Println("Target ID:", targetID)
+		fmt.Println("Target Log:", targetLog)
+
+		if !found {
+			fmt.Println("Log not found. We are in trouble.")
+		}
+
+		var path = "edit.html"
+		tmpl, err := template.ParseFiles(path)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		tmpl.ExecuteTemplate(w, path, nil)
+	}
+
+}
+
 func handler(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/":
@@ -298,6 +387,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		search(w, r)
 	case "/add-logs":
 		add(w, r)
+	case "/delete-logs":
+		delete(w, r)
+	case "/edit-logs":
+		edit(w, r)
 	default:
 		fmt.Fprintf(w, "Hello")
 	}

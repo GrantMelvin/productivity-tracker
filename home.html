@@ -151,7 +151,7 @@
     </style>
 </head>
 <body>
-    <h1>Grants Tracker</h1>
+    <h1>Home</h1>
     
     <form action="/search-logs">
         <input type="text" id="keyword" name="keyword">
@@ -199,8 +199,9 @@
                     {{ end }}
                 </td>
                 <td>
-                    <button id="id-button">Edit</button>
-                    <button id="x-button">Delete</button>
+                    <!-- <button id="id-button">Edit</button> -->
+                    <a href="/edit-logs?id={{.Id}}" id="id-button">Edit</a>
+                    <a href="/delete-logs?id={{.Id}}" id="x-button">Delete</a>
                 </td>
             </tr>
             {{ end }}
