@@ -103,7 +103,7 @@
         }
 
         table td {
-            vertical-align: top;
+            vertical-align: middle;
             word-wrap: break-word;
         }
 
@@ -111,7 +111,7 @@
             line-height: 1.5;
         }
 
-        .add-logs-button {
+        .add-logs-button, #id-button{
             margin: 10px 10px;
             background-color: #a1c6ed;
             color: black;
@@ -126,9 +126,28 @@
             width: fit-content;
         }
 
-        .add-logs-button:hover {
+        .add-logs-button:hover, #id-button:hover {
             background-color: #5285ba;
         }
+
+        #x-button {
+            background-color: rgb(255, 124, 124);
+            color: black;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+            width: fit-content;
+        }
+
+        #x-button:hover {
+            background-color: rgb(207, 56, 56);
+        }
+
     </style>
 </head>
 <body>
@@ -137,27 +156,26 @@
     <form action="/search-logs">
         <input type="text" id="keyword" name="keyword">
         <input type="submit" value="Search">
+        <a class="add-logs-button" href="/add-logs">Add</a>
         {{ if .Search }}
         <a href="/" class="back-button">
             Go Back
         </a>
         {{ end }}
-        <a class="add-logs-button" href="/add-logs">Add</a>
     </form>
     <table>
         <thead>
             <tr>
-                <th>ID</th>
                 <th>Date</th>
                 <th>Goals</th>
                 <th>Productivity</th>
                 <th>Notes</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             {{ range .Logs }}
             <tr>
-                <td>{{ .Id }}</td>
                 <td>{{ .Date }}</td>
                 <td>
                     {{ range $key, $value := .Goals }}
@@ -179,6 +197,10 @@
                         <strong>{{ $index }}</strong> {{ $element }}<br>
                         {{ end }}
                     {{ end }}
+                </td>
+                <td>
+                    <button id="id-button">Edit</button>
+                    <button id="x-button">Delete</button>
                 </td>
             </tr>
             {{ end }}

@@ -309,15 +309,17 @@ func main() {
 	if exists {
 		fmt.Println("Server start at:", server)
 	} else {
+		fmt.Println("Server not started at:", server)
 		fmt.Println("Server not found")
-		return
 	}
 
-	// retrieve the logs before we do anything
+	// retrieve the current logs before we do anything
 	logs = getLogs(DATA_DIR)
-	fmt.Println(maxID)
+
+	// Strip assets prefix so that we can serve the css
 	fs := http.FileServer(http.Dir("assets"))
 	http.Handle("/assets/", http.StripPrefix("/assets", fs))
+
 	http.HandleFunc("/", handler)
 	http.ListenAndServe(server, nil)
 }
