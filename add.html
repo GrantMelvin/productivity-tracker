@@ -202,6 +202,15 @@
     </form>
 
     <script>
+        window.onload = function() {
+            const today = new Date();
+            const month = today.getMonth() + 1; // Months are 0-indexed
+            const day = today.getDate();
+            const formattedDate = `${month}-${day}`;
+
+            document.getElementById("Date").value = formattedDate;
+        };
+
         // Add a new field
         function addField(containerId, keyName, valueName) {
             const container = document.getElementById(containerId);
