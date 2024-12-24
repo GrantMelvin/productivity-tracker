@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"html/template"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -68,6 +71,58 @@ func findLogByID(id int) (*Log, bool) {
 		}
 	}
 	return nil, false
+}
+
+func generateScrumReport(log Log) string {
+
+	content_message := fmt.Sprintf("%v", log)
+
+	postBody, _ := json.Marshal(map[string]interface{}{
+		"model": "gpt-4o-mini",
+		"messages": []map[string]string{
+			{
+				"role":    "system",
+				"content": "You are going to parse the daily log of what I have done and create a report that I can present to my engineering team to show my progress for that day.",
+			},
+			{
+				"role":    "user",
+				"content": content_message,
+			},
+		},
+	})
+
+	responseBody := bytes.NewBuffer(postBody)
+
+	key, _ := os.LookupEnv("OPENAI_API_KEY")
+
+	bearer_token := fmt.Sprintf("Bearer %s", key)
+
+	resp, err := http.NewRequest(http.MethodPost, "https://api.openai.com/v1/chat/completions", responseBody)
+	resp.Header.Add("Content-Type", "application/json")
+	resp.Header.Add("Authorization", bearer_token)
+
+	//Handle Error
+	if err != nil {
+		fmt.Printf("An Error Occured %v", err)
+	}
+
+	response, err := http.DefaultClient.Do(resp)
+
+	//Handle Error
+	if err != nil {
+		fmt.Printf("An Error Occured %v", err)
+	}
+
+	defer response.Body.Close()
+
+	//Read the response body
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		fmt.Println(err)
+	}
+	sb := string(body)
+
+	return sb
 }
 
 func setCurrentLogs(data []byte) (*Log, error) {
@@ -270,6 +325,8 @@ func add(w http.ResponseWriter, r *http.Request) {
 		}
 		fmt.Println("New File:", file)
 		fmt.Println("New Log:", newLog)
+
+		fmt.Println(generateScrumReport(newLog))
 
 		defer file.Close()
 		enc := yaml.NewEncoder(file)
