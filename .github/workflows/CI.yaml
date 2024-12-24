@@ -15,8 +15,8 @@ jobs:
       - name: Run build command
         run: |
 
-          echo "Using API key: ${{ secrets.DOCKERHUB_USERNAME }}"
-          echo "Using API key: ${{ secrets.DOCKERHUB_PASSWORD }}"
+          echo "Using API Key: ${{ main.secrets.DOCKERHUB_USERNAME }}"
+          echo "Using API Secret: ${{ main.DOCKERHUB_PASSWORD }}"
 
       - name: Login to Docker Hub
         uses: docker/login-action@v2
