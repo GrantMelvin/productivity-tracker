@@ -21,7 +21,7 @@ const DATA_DIR = "./assets/data"
 
 var logs Logs
 var maxID int
-var report string
+var report string = ""
 
 // Components of struct have to be capital for templating to work
 type Test struct {
@@ -283,7 +283,7 @@ func home(w http.ResponseWriter) {
 		fmt.Println(err)
 	}
 
-	tmpl.ExecuteTemplate(w, home, SearchableLogsReport{Logs: logs.Logs, Search: false, Report: ""})
+	tmpl.ExecuteTemplate(w, home, SearchableLogsReport{Logs: logs.Logs, Search: false, Report: report})
 }
 
 func search(w http.ResponseWriter, r *http.Request) {
@@ -305,7 +305,7 @@ func search(w http.ResponseWriter, r *http.Request) {
 	var subset = searchLogs(keyword)
 	fmt.Println("subet:", subset)
 
-	tmpl.ExecuteTemplate(w, search, SearchableLogsReport{Logs: subset.Logs, Search: true, Report: ""})
+	tmpl.ExecuteTemplate(w, search, SearchableLogsReport{Logs: subset.Logs, Search: true, Report: report})
 }
 
 func add(w http.ResponseWriter, r *http.Request) {
@@ -479,7 +479,7 @@ func generate(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 		}
 
-		tmpl.ExecuteTemplate(w, path, SearchableLogsReport{Logs: logs.Logs, Search: false, Report: ""})
+		tmpl.ExecuteTemplate(w, path, SearchableLogsReport{Logs: logs.Logs, Search: false, Report: report})
 		return
 	}
 

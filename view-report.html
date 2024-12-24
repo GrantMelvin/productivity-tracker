@@ -5,6 +5,7 @@
     <link href="/assets/css/styles.css" type="text/css" rel="stylesheet">
     <title>Productivity Tracker</title>
     <script src="https://cdn.jsdelivr.net/npm/showdown/dist/showdown.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script> </head>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -54,9 +55,15 @@
 </head>
 <body>
     <h1>View Report</h1>
-    <a href="/generate-report" class="back-button">
+    <a href="/" class="back-button">
         Go Back
     </a>
+    <button class="back-button" onclick="generatePDF()">
+        Export as PDF
+    </button>
+    <button class="back-button">
+        Backup to database
+    </button>
     <div class="markdown-content" id="markdown-output"></div>
 
     <script>
@@ -65,6 +72,16 @@
         const converter = new showdown.Converter();
         const html = converter.makeHtml(markdownText);
         document.getElementById("markdown-output").innerHTML = html;
+
+        function generatePDF() {
+
+        const element = document.getElementById("markdown-output"); 
+
+        html2pdf(element).then(pdf => {
+            pdf.save("Report.pdf"); 
+        });
+
+        }
     </script>
 </body>
 </html>
