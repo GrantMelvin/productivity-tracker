@@ -21,6 +21,7 @@ const DATA_DIR = "./assets/data"
 
 var logs Logs
 var maxID int
+var report string
 
 // Components of struct have to be capital for templating to work
 type Test struct {
@@ -37,6 +38,10 @@ type Log struct {
 
 type Logs struct {
 	Logs []Log
+}
+
+type Report struct {
+	Report string
 }
 
 type SearchableLogs struct {
@@ -139,8 +144,9 @@ func generateScrumReport(log Log) string {
 		fmt.Println("Error unmarshaling JSON:", err)
 	}
 	// fmt.Println(test.Choices[0].Message.Content)
+	report = test.Choices[0].Message.Content
 
-	return test.Choices[0].Message.Content
+	return report
 }
 
 func setCurrentLogs(data []byte) (*Log, error) {
@@ -277,7 +283,7 @@ func home(w http.ResponseWriter) {
 		fmt.Println(err)
 	}
 
-	tmpl.ExecuteTemplate(w, home, SearchableLogs{Logs: logs.Logs, Search: false})
+	tmpl.ExecuteTemplate(w, home, SearchableLogsReport{Logs: logs.Logs, Search: false, Report: ""})
 }
 
 func search(w http.ResponseWriter, r *http.Request) {
@@ -299,7 +305,7 @@ func search(w http.ResponseWriter, r *http.Request) {
 	var subset = searchLogs(keyword)
 	fmt.Println("subet:", subset)
 
-	tmpl.ExecuteTemplate(w, search, SearchableLogs{Logs: subset.Logs, Search: true})
+	tmpl.ExecuteTemplate(w, search, SearchableLogsReport{Logs: subset.Logs, Search: true, Report: ""})
 }
 
 func add(w http.ResponseWriter, r *http.Request) {
@@ -473,7 +479,7 @@ func generate(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 		}
 
-		tmpl.ExecuteTemplate(w, path, SearchableLogs{Logs: logs.Logs, Search: false})
+		tmpl.ExecuteTemplate(w, path, SearchableLogsReport{Logs: logs.Logs, Search: false, Report: ""})
 		return
 	}
 
@@ -486,6 +492,20 @@ func generate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tmpl.ExecuteTemplate(w, path, SearchableLogsReport{Logs: logs.Logs, Search: false, Report: report})
+
+}
+
+func view(w http.ResponseWriter, r *http.Request, report string) {
+	var path = "view-report.html"
+
+	tmpl, err := template.ParseFiles(path)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println(report)
+
+	tmpl.ExecuteTemplate(w, path, Report{Report: report})
 
 }
 
@@ -503,6 +523,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		edit(w, r)
 	case "/generate-report":
 		generate(w, r)
+	case "/view-report":
+		view(w, r, report)
 	default:
 		fmt.Fprintf(w, "Hello")
 	}

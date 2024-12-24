@@ -192,86 +192,11 @@
     </style>
 </head>
 <body>
-    <h1>Home</h1>
+    <h1>View Report</h1>
     
-    <form action="/search-logs">
-        <input type="text" id="keyword" name="keyword">
-        <input type="submit" value="Search">
-        <a class="add-logs-button" href="/add-logs">Add</a>
-        {{ if .Search }}
-        <a href="/" class="back-button">
-            Go Back
-        </a>
-        {{ end }}
-        {{ if eq (len .Report) 0 }}
-            {{ else }}
-                <a href="/view-report" class="add-logs-button">
-                    View Report
-                </a>
-        {{ end }}
-    </form>
-    <table>
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Goals</th>
-                <th>Productivity</th>
-                <th>Notes</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {{ range .Logs }}
-            <tr>
-                <td>{{ .Date }}</td>
-                <td>
-                    {{ range $key, $value := .Goals }}
-                        {{ range $index, $element := $value }}
-                        <strong>{{ $index }}</strong> {{ if $index }} | {{ end }}
-                        {{ end }}
-                    {{ end }}
-                    {{ range $key, $value := .Goals }}
-                        {{ range $index, $element := $value }}
-                        {{ $element }}
-                        {{ end }}
-                        <br>
-                    {{ end }}
-                </td>
-                <td>
-                    {{ range $key, $value := .Productivity }}
-                        {{ range $index, $element := $value }}
-                        <strong>{{ $index }}</strong> {{ if $index }} | {{ end }}
-                        {{ end }}
-                    {{ end }}
-                    {{ range $key, $value := .Productivity }}
-                        {{ range $index, $element := $value }}
-                        {{ $element }}
-                        {{ end }}
-                        <br>
-                    {{ end }}
-                </td>
-                <td>
-                    {{ range $key, $value := .Notes }}
-                        {{ range $index, $element := $value }}
-                        <strong>{{ $index }}</strong> {{ if $index }} | {{ end }}
-                        {{ end }}
-                    {{ end }}
-                    {{ range $key, $value := .Notes }}
-                        {{ range $index, $element := $value }}
-                        {{ $element }}
-                        {{ end }}
-                        <br>
-                    {{ end }}
-                </td>
-                <td>
-                    <!-- <button id="id-button">Edit</button> -->
-                    <a href="/edit-logs?id={{.Id}}" id="id-button">Edit</a>
-                    <a href="/delete-logs?id={{.Id}}" id="x-button">Delete</a>
-                    <a href="/generate-report?id={{.Id}}" id="gen-button">Generate Report</a>
-                </td>
-            </tr>
-            {{ end }}
-        </tbody>
-    </table>
+    <a href="/" class="back-button">
+        Go Back
+    </a>
+    <p>{{.Report}}</p>
 </body>
 </html>
