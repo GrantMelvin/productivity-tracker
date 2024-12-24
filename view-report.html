@@ -4,10 +4,11 @@
     <meta charset="utf-8">
     <link href="/assets/css/styles.css" type="text/css" rel="stylesheet">
     <title>Productivity Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/showdown/dist/showdown.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
+            background-color: #f4f4f9;
             margin: 0;
             padding: 0;
         }
@@ -17,186 +18,53 @@
             color: #333;
             margin-top: 20px;
             margin-left: 20px;
+            margin-bottom: 30px;
         }
 
-        form {
-            max-width: 800px;
-            margin: 20px auto;
-            text-align: left;
-            margin-left: 20px;
-        }
-
-        form input[type="text"] {
-            width: 300px;
-            padding: 8px;
-            margin-right: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        form input[type="submit"] {
-            background-color: #a1c6ed;
-            color: black;
-            border: none;
-            border-radius: 5px;
-            padding: 8px 15px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        form input[type="submit"]:hover {
-            background-color: #5285ba;
-        }
-
+        /* Back Button Styling */
         .back-button {
             display: inline-block;
             background-color: #6ed285;
             color: black;
             border-radius: 5px;
-            padding: 8px 15px;
+            padding: 10px 20px;
             font-size: 14px;
             cursor: pointer;
             text-decoration: none;
             text-align: center;
             transition: background-color 0.3s ease;
+            margin: 20px;
         }
 
         .back-button:hover {
-            background-color: #69b679;
+            background-color: #5db970;
         }
 
-        table {
-            width: 90%;
-            margin: 20px auto;
-            border-collapse: collapse;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        .markdown-content {
             background-color: #fff;
             border-radius: 8px;
-            overflow: hidden;
-            table-layout: fixed; 
-        }
-
-        table thead {
-            background-color: #a1c6ed;
-            color: black;
-            text-align: left;
-        }
-
-        table th,
-        table td {
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            font-size: 24px;
-            word-wrap: break-word;
-            white-space: normal; /* Ensures line breaks within words */
-            max-width: 200px; /* Optional: Set a maximum width for cells */
-            text-overflow: ellipsis;
-        }
-
-        table th {
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        table tbody tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-
-        table tbody tr:hover {
-            background-color: #f1f1f1;
-        }
-
-        table td {
-            vertical-align: middle;
-            word-wrap: break-word;
-        }
-
-        table td br {
-            line-height: 1.5;
-        }
-
-        table th:nth-child(1), table td:nth-child(1) {
-            width: 10%; /* Date column */
-        }
-
-        table th:nth-child(2), table td:nth-child(2) {
-            width: 25%; /* Goals column */
-        }
-
-        table th:nth-child(3), table td:nth-child(3) {
-            width: 25%; /* Productivity column */
-        }
-
-        table th:nth-child(4), table td:nth-child(4) {
-            width: 25%; /* Notes column */
-        }
-
-        table th:nth-child(5), table td:nth-child(5) {
-            width: 10%; /* Actions column */
-        }
-
-        #gen-button, #x-button, #id-button{
-            width: 100px; /* Set a consistent width for all buttons */
-            margin: 6px auto; /* Center buttons horizontally */
-            text-align: center;
-            background-color: #73d087; /* Default background for #gen-button */
-            color: black;
-            border: none;
-            border-radius: 8px; /* Rounded edges */
-            padding: 10px;
+            padding: 20px;
+            max-width: 800px;
+            margin: 20px auto;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: block; /* Ensures consistent height and alignment */
+            line-height: 1.6;
         }
-
-        #gen-button:hover {
-            background: linear-gradient(to right, #39ac4c, #3cc35e);
-        }
-
-        #x-button {
-            background-color: rgb(255, 124, 124); /* Specific style for delete button */
-        }
-
-        #x-button:hover {
-            background-color: rgb(207, 56, 56);
-        }
-
-        #id-button {
-            background-color: #a1c6ed; /* Specific style for edit button */
-        }
-
-        .add-logs-button{
-            margin: 10px 10px;
-            background-color: #a1c6ed;
-            color: black;
-            border: none;
-            border-radius: 5px;
-            padding: 8px 15px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            text-align: center;
-            text-decoration: none;
-            width: fit-content;
-        }
-
-        #id-button:hover,  .add-logs-button:hover {
-            background-color: #5285ba;
-        }
-
-
     </style>
 </head>
 <body>
     <h1>View Report</h1>
-    
-    <a href="/" class="back-button">
+    <a href="/generate-report" class="back-button">
         Go Back
     </a>
-    <p>{{.Report}}</p>
+    <div class="markdown-content" id="markdown-output"></div>
+
+    <script>
+        const markdownText = `{{.Report}}`
+
+        const converter = new showdown.Converter();
+        const html = converter.makeHtml(markdownText);
+        document.getElementById("markdown-output").innerHTML = html;
+    </script>
 </body>
 </html>
