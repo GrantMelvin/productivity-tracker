@@ -44,6 +44,12 @@ type SearchableLogs struct {
 	Search bool
 }
 
+type SearchableLogsReport struct {
+	Logs   []Log
+	Search bool
+	Report string
+}
+
 func parseKeyVals(data []interface{}) []map[string]string {
 	result := []map[string]string{}
 
@@ -101,28 +107,40 @@ func generateScrumReport(log Log) string {
 	resp.Header.Add("Content-Type", "application/json")
 	resp.Header.Add("Authorization", bearer_token)
 
-	//Handle Error
+	// Handle Error
 	if err != nil {
 		fmt.Printf("An Error Occured %v", err)
 	}
 
 	response, err := http.DefaultClient.Do(resp)
 
-	//Handle Error
+	// Handle Error
 	if err != nil {
 		fmt.Printf("An Error Occured %v", err)
 	}
 
 	defer response.Body.Close()
 
-	//Read the response body
+	// Read the response body
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		fmt.Println(err)
 	}
-	sb := string(body)
+	// Define the structure for parsing
+	var test struct {
+		Choices []struct {
+			Message struct {
+				Content string `json:"content"`
+			} `json:"message"`
+		} `json:"choices"`
+	}
+	err = json.Unmarshal(body, &test)
+	if err != nil {
+		fmt.Println("Error unmarshaling JSON:", err)
+	}
+	// fmt.Println(test.Choices[0].Message.Content)
 
-	return sb
+	return test.Choices[0].Message.Content
 }
 
 func setCurrentLogs(data []byte) (*Log, error) {
@@ -326,7 +344,7 @@ func add(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("New File:", file)
 		fmt.Println("New Log:", newLog)
 
-		fmt.Println(generateScrumReport(newLog))
+		// fmt.Println(generateScrumReport(newLog))
 
 		defer file.Close()
 		enc := yaml.NewEncoder(file)
@@ -436,6 +454,41 @@ func edit(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func generate(w http.ResponseWriter, r *http.Request) {
+	targetID, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	targetLog, found := findLogByID(targetID)
+
+	fmt.Println("Target ID:", targetID)
+	fmt.Println("Target Log:", targetLog)
+
+	if !found {
+		fmt.Println("Log not found. We are in trouble.")
+		var path = "home.html"
+		tmpl, err := template.ParseFiles(path)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		tmpl.ExecuteTemplate(w, path, SearchableLogs{Logs: logs.Logs, Search: false})
+		return
+	}
+
+	report := (generateScrumReport(*targetLog))
+
+	var path = "home.html"
+	tmpl, err := template.ParseFiles(path)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	tmpl.ExecuteTemplate(w, path, SearchableLogsReport{Logs: logs.Logs, Search: false, Report: report})
+
+}
+
 func handler(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/":
@@ -448,6 +501,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		delete(w, r)
 	case "/edit-logs":
 		edit(w, r)
+	case "/generate-report":
+		generate(w, r)
 	default:
 		fmt.Fprintf(w, "Hello")
 	}
