@@ -2,7 +2,7 @@ name: Docker Image Continuous Integration
 
 on:
   push:
-    branches: [ main, genai ]
+    branches: [ main ]
 
 jobs:
   build-and-push:
