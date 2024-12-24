@@ -55,6 +55,11 @@ type SearchableLogsReport struct {
 	Report string
 }
 
+func loadTemplate(templateName string) (*template.Template, error) {
+	path := fmt.Sprintf("pages/%s", templateName)
+	return template.ParseFiles(path)
+}
+
 func parseKeyVals(data []interface{}) []map[string]string {
 	result := []map[string]string{}
 
@@ -276,20 +281,18 @@ func searchLogs(keyword string) Logs {
 }
 
 func home(w http.ResponseWriter) {
-	var home = "home.html"
-
-	tmpl, err := template.ParseFiles(home)
+	var path = "home.html"
+	tmpl, err := loadTemplate(path)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	tmpl.ExecuteTemplate(w, home, SearchableLogsReport{Logs: logs.Logs, Search: false, Report: report})
+	tmpl.ExecuteTemplate(w, path, SearchableLogsReport{Logs: logs.Logs, Search: false, Report: report})
 }
 
 func search(w http.ResponseWriter, r *http.Request) {
-	var search = "home.html"
-
-	tmpl, err := template.ParseFiles(search)
+	var path = "home.html"
+	tmpl, err := loadTemplate(path)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -303,9 +306,9 @@ func search(w http.ResponseWriter, r *http.Request) {
 	// }
 
 	var subset = searchLogs(keyword)
-	fmt.Println("subet:", subset)
+	fmt.Println("subset:", subset)
 
-	tmpl.ExecuteTemplate(w, search, SearchableLogsReport{Logs: subset.Logs, Search: true, Report: report})
+	tmpl.ExecuteTemplate(w, path, SearchableLogsReport{Logs: subset.Logs, Search: true, Report: report})
 }
 
 func add(w http.ResponseWriter, r *http.Request) {
@@ -367,13 +370,13 @@ func add(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Render the add page for GET requests
-	var add = "add.html"
-	tmpl, err := template.ParseFiles(add)
+	var path = "add.html"
+	tmpl, err := loadTemplate(path)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	tmpl.ExecuteTemplate(w, add, nil)
+	tmpl.ExecuteTemplate(w, path, nil)
 }
 
 func delete(w http.ResponseWriter, r *http.Request) {
@@ -424,12 +427,10 @@ func edit(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var path = "edit.html"
-		tmpl, err := template.ParseFiles(path)
+		tmpl, err := loadTemplate(path)
 		if err != nil {
 			fmt.Println(err)
 		}
-
-		fmt.Println(targetLog)
 
 		tmpl.ExecuteTemplate(w, path, targetLog)
 	}
@@ -450,7 +451,7 @@ func edit(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var path = "edit.html"
-		tmpl, err := template.ParseFiles(path)
+		tmpl, err := loadTemplate(path)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -485,8 +486,8 @@ func generate(w http.ResponseWriter, r *http.Request) {
 
 	report := (generateScrumReport(*targetLog))
 
-	var path = "home.html"
-	tmpl, err := template.ParseFiles(path)
+	var path = "view-report.html"
+	tmpl, err := loadTemplate(path)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -495,15 +496,12 @@ func generate(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func view(w http.ResponseWriter, r *http.Request, report string) {
+func view(w http.ResponseWriter, report string) {
 	var path = "view-report.html"
-
-	tmpl, err := template.ParseFiles(path)
+	tmpl, err := loadTemplate(path)
 	if err != nil {
 		fmt.Println(err)
 	}
-
-	fmt.Println(report)
 
 	tmpl.ExecuteTemplate(w, path, Report{Report: report})
 
@@ -524,9 +522,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	case "/generate-report":
 		generate(w, r)
 	case "/view-report":
-		view(w, r, report)
+		view(w, report)
 	default:
-		fmt.Fprintf(w, "Hello")
+		fmt.Fprintf(w, "What is going on")
 	}
 }
 
