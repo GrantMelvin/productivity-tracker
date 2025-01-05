@@ -150,10 +150,12 @@
         <label>Goals:</label>
         <div id="goals-container" class="field-container">
             {{ range $key, $value := .Goals }}
-            <div class="dynamic-field">
-                <input type="text" name="goals_key[]" value="{{ $key }}">
-                <textarea name="goals_value[]">{{ $value }}</textarea>
-            </div>
+                {{ range $index, $element := $value }}
+                    <div class="dynamic-field">
+                    <input type="text" name="goals_key[]" value="{{ $index }}">
+                    <textarea name="goals_value[]">{{ $element }}</textarea>
+                </div>
+                {{end}}
             {{ end }}
             <div class="action-buttons">
                 <button type="button" class="add-button" onclick="addField('goals-container', 'goals_key[]', 'goals_value[]')">+</button>
@@ -164,10 +166,12 @@
         <label>Productivity:</label>
         <div id="productivity-container" class="field-container">
             {{ range $key, $value := .Productivity }}
-            <div class="dynamic-field">
-                <input type="text" name="productivity_key[]" value="{{ $key }}">
-                <textarea name="productivity_value[]">{{ $value }}</textarea>
-            </div>
+                {{ range $index, $element := $value }}
+                    <div class="dynamic-field">
+                    <input type="text" name="productivity_key[]" value="{{ $index }}">
+                    <textarea name="productivity_value[]">{{ $element }}</textarea>
+                </div>
+                {{end}}
             {{ end }}
             <div class="action-buttons">
                 <button type="button" class="add-button" onclick="addField('productivity-container', 'productivity_key[]', 'productivity_value[]')">+</button>
@@ -178,10 +182,12 @@
         <label>Notes:</label>
         <div id="notes-container" class="field-container">
             {{ range $key, $value := .Notes }}
-            <div class="dynamic-field">
-                <input type="text" name="notes_key[]" value="{{ $key }}">
-                <textarea name="notes_value[]">{{ $value }}</textarea>
-            </div>
+                {{ range $index, $element := $value }}
+                    <div class="dynamic-field">
+                    <input type="text" name="notes_key[]" value="{{ $index }}">
+                    <textarea name="notes_value[]">{{ $element }}</textarea>
+                </div>
+                {{end}}
             {{ end }}
             <div class="action-buttons">
                 <button type="button" class="add-button" onclick="addField('notes-container', 'notes_key[]', 'notes_value[]')">+</button>
@@ -189,7 +195,10 @@
             </div>
         </div>
 
-        <input type="submit" value="Save Changes">
+        <a href="/">
+            <input type="button" value="Save Changes" >
+        </a>
+
         <a href="/">
             <button type="button" class="back-button">Go Back</button>
         </a>

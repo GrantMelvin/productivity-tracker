@@ -205,12 +205,13 @@
                 <td>
                     {{ range $key, $value := .Goals }}
                         {{ range $index, $element := $value }}
-                        <strong>{{ $index }}</strong> {{ if $index }} | {{ end }}
+                                <strong>{{ $index }}</strong>{{ if $index }},{{ end }}
                         {{ end }}
                     {{ end }}
+                    <br>
                     {{ range $key, $value := .Goals }}
                         {{ range $index, $element := $value }}
-                        {{ $element }}
+                            {{if $element}} • {{ end }}{{ $element }}
                         {{ end }}
                         <br>
                     {{ end }}
@@ -218,12 +219,13 @@
                 <td>
                     {{ range $key, $value := .Productivity }}
                         {{ range $index, $element := $value }}
-                        <strong>{{ $index }}</strong> {{ if $index }} | {{ end }}
+                            <strong>{{ $index }}</strong>{{ if $index }},{{ end }}
                         {{ end }}
                     {{ end }}
+                    <br> 
                     {{ range $key, $value := .Productivity }}
                         {{ range $index, $element := $value }}
-                        {{ $element }}
+                        {{if $element}} • {{ end }}{{ $element }}
                         {{ end }}
                         <br>
                     {{ end }}
@@ -231,12 +233,13 @@
                 <td>
                     {{ range $key, $value := .Notes }}
                         {{ range $index, $element := $value }}
-                        <strong>{{ $index }}</strong> {{ if $index }} | {{ end }}
+                            <strong>{{ $index }}</strong>{{ if $index }},{{ end }}
                         {{ end }}
                     {{ end }}
+                    <br>
                     {{ range $key, $value := .Notes }}
                         {{ range $index, $element := $value }}
-                        {{ $element }}
+                        {{if $element}} • {{ end }}{{ $element }}
                         {{ end }}
                         <br>
                     {{ end }}
