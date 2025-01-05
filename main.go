@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"html/template"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -18,6 +21,7 @@ const DATA_DIR = "./assets/data"
 
 var logs Logs
 var maxID int
+var report string = ""
 
 // Components of struct have to be capital for templating to work
 type Test struct {
@@ -36,9 +40,24 @@ type Logs struct {
 	Logs []Log
 }
 
+type Report struct {
+	Report string
+}
+
 type SearchableLogs struct {
 	Logs   []Log
 	Search bool
+}
+
+type SearchableLogsReport struct {
+	Logs   []Log
+	Search bool
+	Report string
+}
+
+func loadTemplate(templateName string) (*template.Template, error) {
+	path := fmt.Sprintf("pages/%s", templateName)
+	return template.ParseFiles(path)
 }
 
 func parseKeyVals(data []interface{}) []map[string]string {
@@ -68,6 +87,71 @@ func findLogByID(id int) (*Log, bool) {
 		}
 	}
 	return nil, false
+}
+
+func generateScrumReport(log Log) string {
+
+	content_message := fmt.Sprintf("%v", log)
+
+	postBody, _ := json.Marshal(map[string]interface{}{
+		"model": "gpt-4o-mini",
+		"messages": []map[string]string{
+			{
+				"role":    "system",
+				"content": "You are going to parse the daily log of what I have done and create a report that I can present to my engineering team to show my progress for that day.",
+			},
+			{
+				"role":    "user",
+				"content": content_message,
+			},
+		},
+	})
+
+	responseBody := bytes.NewBuffer(postBody)
+
+	key, _ := os.LookupEnv("OPENAI_API_KEY")
+
+	bearer_token := fmt.Sprintf("Bearer %s", key)
+
+	resp, err := http.NewRequest(http.MethodPost, "https://api.openai.com/v1/chat/completions", responseBody)
+	resp.Header.Add("Content-Type", "application/json")
+	resp.Header.Add("Authorization", bearer_token)
+
+	// Handle Error
+	if err != nil {
+		fmt.Printf("An Error Occured %v", err)
+	}
+
+	response, err := http.DefaultClient.Do(resp)
+
+	// Handle Error
+	if err != nil {
+		fmt.Printf("An Error Occured %v", err)
+	}
+
+	defer response.Body.Close()
+
+	// Read the response body
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		fmt.Println(err)
+	}
+	// Define the structure for parsing
+	var test struct {
+		Choices []struct {
+			Message struct {
+				Content string `json:"content"`
+			} `json:"message"`
+		} `json:"choices"`
+	}
+	err = json.Unmarshal(body, &test)
+	if err != nil {
+		fmt.Println("Error unmarshaling JSON:", err)
+	}
+	// fmt.Println(test.Choices[0].Message.Content)
+	report = test.Choices[0].Message.Content
+
+	return report
 }
 
 func setCurrentLogs(data []byte) (*Log, error) {
@@ -197,20 +281,18 @@ func searchLogs(keyword string) Logs {
 }
 
 func home(w http.ResponseWriter) {
-	var home = "home.html"
-
-	tmpl, err := template.ParseFiles(home)
+	var path = "home.html"
+	tmpl, err := loadTemplate(path)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	tmpl.ExecuteTemplate(w, home, SearchableLogs{Logs: logs.Logs, Search: false})
+	tmpl.ExecuteTemplate(w, path, SearchableLogsReport{Logs: logs.Logs, Search: false, Report: report})
 }
 
 func search(w http.ResponseWriter, r *http.Request) {
-	var search = "home.html"
-
-	tmpl, err := template.ParseFiles(search)
+	var path = "home.html"
+	tmpl, err := loadTemplate(path)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -224,9 +306,9 @@ func search(w http.ResponseWriter, r *http.Request) {
 	// }
 
 	var subset = searchLogs(keyword)
-	fmt.Println("subet:", subset)
+	fmt.Println("subset:", subset)
 
-	tmpl.ExecuteTemplate(w, search, SearchableLogs{Logs: subset.Logs, Search: true})
+	tmpl.ExecuteTemplate(w, path, SearchableLogsReport{Logs: subset.Logs, Search: true, Report: report})
 }
 
 func add(w http.ResponseWriter, r *http.Request) {
@@ -271,6 +353,8 @@ func add(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("New File:", file)
 		fmt.Println("New Log:", newLog)
 
+		// fmt.Println(generateScrumReport(newLog))
+
 		defer file.Close()
 		enc := yaml.NewEncoder(file)
 
@@ -286,13 +370,13 @@ func add(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Render the add page for GET requests
-	var add = "add.html"
-	tmpl, err := template.ParseFiles(add)
+	var path = "add.html"
+	tmpl, err := loadTemplate(path)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	tmpl.ExecuteTemplate(w, add, nil)
+	tmpl.ExecuteTemplate(w, path, nil)
 }
 
 func delete(w http.ResponseWriter, r *http.Request) {
@@ -343,12 +427,10 @@ func edit(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var path = "edit.html"
-		tmpl, err := template.ParseFiles(path)
+		tmpl, err := loadTemplate(path)
 		if err != nil {
 			fmt.Println(err)
 		}
-
-		fmt.Println(targetLog)
 
 		tmpl.ExecuteTemplate(w, path, targetLog)
 	}
@@ -369,13 +451,59 @@ func edit(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var path = "edit.html"
-		tmpl, err := template.ParseFiles(path)
+		tmpl, err := loadTemplate(path)
 		if err != nil {
 			fmt.Println(err)
 		}
 
 		tmpl.ExecuteTemplate(w, path, nil)
 	}
+
+}
+
+func generate(w http.ResponseWriter, r *http.Request) {
+	targetID, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	targetLog, found := findLogByID(targetID)
+
+	fmt.Println("Target ID:", targetID)
+	fmt.Println("Target Log:", targetLog)
+
+	if !found {
+		fmt.Println("Log not found. We are in trouble.")
+		var path = "home.html"
+		tmpl, err := template.ParseFiles(path)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		tmpl.ExecuteTemplate(w, path, SearchableLogsReport{Logs: logs.Logs, Search: false, Report: report})
+		return
+	}
+
+	report := (generateScrumReport(*targetLog))
+
+	var path = "view-report.html"
+	tmpl, err := loadTemplate(path)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	tmpl.ExecuteTemplate(w, path, SearchableLogsReport{Logs: logs.Logs, Search: false, Report: report})
+
+}
+
+func view(w http.ResponseWriter, report string) {
+	var path = "view-report.html"
+	tmpl, err := loadTemplate(path)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	tmpl.ExecuteTemplate(w, path, Report{Report: report})
 
 }
 
@@ -391,8 +519,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		delete(w, r)
 	case "/edit-logs":
 		edit(w, r)
+	case "/generate-report":
+		generate(w, r)
+	case "/view-report":
+		view(w, report)
 	default:
-		fmt.Fprintf(w, "Hello")
+		fmt.Fprintf(w, "What is going on")
 	}
 }
 

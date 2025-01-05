@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link href="/assets/css/styles.css" type="text/css" rel="stylesheet">
+    <title>Productivity Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/showdown/dist/showdown.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script> </head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: left;
+            color: #333;
+            margin-top: 20px;
+            margin-left: 20px;
+            margin-bottom: 30px;
+        }
+
+        /* Back Button Styling */
+        .back-button {
+            display: inline-block;
+            background-color: #6ed285;
+            color: black;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            transition: background-color 0.3s ease;
+            margin: 20px;
+        }
+
+        .back-button:hover {
+            background-color: #5db970;
+        }
+
+        .markdown-content {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 800px;
+            margin: 20px auto;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            font-size: 16px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <h1>View Report</h1>
+    <a href="/" class="back-button">
+        Go Back
+    </a>
+    <button class="back-button" onclick="generatePDF()">
+        Export as PDF
+    </button>
+    <button class="back-button">
+        Backup to database
+    </button>
+    <div class="markdown-content" id="markdown-output"></div>
+
+    <script>
+        const markdownText = `{{.Report}}`
+
+        const converter = new showdown.Converter();
+        const html = converter.makeHtml(markdownText);
+        document.getElementById("markdown-output").innerHTML = html;
+
+        function generatePDF() {
+
+        const element = document.getElementById("markdown-output"); 
+
+        html2pdf(element).then(pdf => {
+            pdf.save("Report.pdf"); 
+        });
+
+        }
+    </script>
+</body>
+</html>
