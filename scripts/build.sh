@@ -8,4 +8,4 @@ sudo docker build -t prod .
 
 # Run the Docker container
 echo "Running the Docker container..."
-docker run --rm --name "productivity_tracker" -p 80:8080 -t "prod"
+sudo docker run --rm --name "productivity_tracker" -p 80:8080 -t "prod"

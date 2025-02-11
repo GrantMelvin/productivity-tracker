@@ -436,18 +436,81 @@ func edit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodPost {
+		err := r.ParseForm()
+		if err != nil {
+			http.Error(w, "Failed to parse form", http.StatusBadRequest)
+			return
+		}
+
 		targetID, err := strconv.Atoi(r.URL.Query().Get("id"))
 		if err != nil {
 			fmt.Println(err)
 		}
 
 		targetLog, found := findLogByID(targetID)
-
-		fmt.Println("Target ID:", targetID)
-		fmt.Println("Target Log:", targetLog)
-
 		if !found {
 			fmt.Println("Log not found. We are in trouble.")
+			http.Error(w, "Log not found", http.StatusNotFound)
+			return
+		}
+
+		// Update the log fields
+		targetLog.Date = r.FormValue("date")
+
+		// Update Goals
+		targetLog.Goals = []map[string]string{}
+		goalsKeys := r.Form["goals_key[]"]
+		goalsValues := r.Form["goals_value[]"]
+		for i := range goalsKeys {
+			if goalsKeys[i] != "" || goalsValues[i] != "" {
+				targetLog.Goals = append(targetLog.Goals, map[string]string{goalsKeys[i]: goalsValues[i]})
+			}
+		}
+
+		// Update Productivity
+		targetLog.Productivity = []map[string]string{}
+		prodKeys := r.Form["productivity_key[]"]
+		prodValues := r.Form["productivity_value[]"]
+		for i := range prodKeys {
+			if prodKeys[i] != "" || prodValues[i] != "" {
+				targetLog.Productivity = append(targetLog.Productivity, map[string]string{prodKeys[i]: prodValues[i]})
+			}
+		}
+
+		// Update Notes
+		targetLog.Notes = []map[string]string{}
+		notesKeys := r.Form["notes_key[]"]
+		notesValues := r.Form["notes_value[]"]
+		for i := range notesKeys {
+			if notesKeys[i] != "" || notesValues[i] != "" {
+				targetLog.Notes = append(targetLog.Notes, map[string]string{notesKeys[i]: notesValues[i]})
+			}
+		}
+
+		// Update the log in the logs slice
+		for i, log := range logs.Logs {
+			if log.Id == targetID {
+				logs.Logs[i] = *targetLog
+				break
+			}
+		}
+
+		// Save the updated log to the YAML file
+		fileName := fmt.Sprintf("%s/%s.yaml", DATA_DIR, targetLog.Date)
+		file, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+		if err != nil {
+			fmt.Printf("error opening/creating file: %v\n", err)
+			http.Error(w, "Failed to save log", http.StatusInternalServerError)
+			return
+		}
+		defer file.Close()
+
+		enc := yaml.NewEncoder(file)
+		err = enc.Encode(targetLog)
+		if err != nil {
+			fmt.Printf("error encoding: %v\n", err)
+			http.Error(w, "Failed to encode log", http.StatusInternalServerError)
+			return
 		}
 
 		var path = "edit.html"

@@ -195,10 +195,8 @@
             </div>
         </div>
 
-        <a href="/">
-            <input type="button" value="Save Changes" >
-        </a>
-
+        <input type="submit" value="Save Changes">
+        
         <a href="/">
             <button type="button" class="back-button">Go Back</button>
         </a>
@@ -212,16 +210,17 @@
 
             const keyInput = document.createElement('input');
             keyInput.type = 'text';
-            keyInput.name = keyName;
+            keyInput.name = keyName; // e.g., "goals_key[]"
 
             const valueTextarea = document.createElement('textarea');
-            valueTextarea.name = valueName;
+            valueTextarea.name = valueName; // e.g., "goals_value[]"
 
             fieldDiv.appendChild(keyInput);
             fieldDiv.appendChild(valueTextarea);
 
             container.insertBefore(fieldDiv, container.querySelector('.action-buttons'));
         }
+
 
         function removeLastField(containerId) {
             const container = document.getElementById(containerId);
