@@ -227,7 +227,7 @@
                 <td>
                     {{ range $key, $value := .Goals }}
                         {{ range $index, $element := $value }}
-                                <strong>Keys: </strong>{{ $index }}{{ if $index }}{{ end }}
+                                <strong>{{ $index }}{{ if $index }}{{ end }}</strong>
                         {{ end }}
                     {{ end }}
                     <br>
