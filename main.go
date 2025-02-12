@@ -60,6 +60,11 @@ func loadTemplate(templateName string) (*template.Template, error) {
 	return template.ParseFiles(path)
 }
 
+func isRunningInDocker() bool {
+	_, err := os.Stat("/.dockerenv")
+	return !os.IsNotExist(err)
+}
+
 func parseKeyVals(data []interface{}) []map[string]string {
 	result := []map[string]string{}
 
@@ -313,6 +318,8 @@ func search(w http.ResponseWriter, r *http.Request) {
 
 func add(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost { // Ensure the form was submitted as POST
+
+		// if there is already a log with that date, redirect them there
 
 		// Parse and add goals, productivity, and notes from form values
 		var newLog Log
@@ -594,6 +601,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	godotenv.Load()
 	server, exists := os.LookupEnv("SERVER")
+	if isRunningInDocker() {
+		server = "0.0.0.0:8080"
+	}
 	if exists {
 		fmt.Println("Server start at:", server)
 	} else {
